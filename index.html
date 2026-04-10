@@ -3,91 +3,479 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EmuCool</title>
-    <meta name="description" content="EmuCool — coming soon." />
+    <title>EmuCool — Retro Emulator for iPhone &amp; iPad</title>
+    <meta
+      name="description"
+      content="EmuCool is a retro game emulator for iPhone and iPad. NES, SNES, Game Boy, GBA, and Genesis. Save states, auto save, portrait and landscape, and optional display filters with EmuCool Pro."
+    />
+    <meta property="og:title" content="EmuCool — Retro Emulator" />
+    <meta
+      property="og:description"
+      content="Play classic games on iPhone and iPad. Import your own files, save states, portrait or landscape. NES, SNES, GB/GBC, GBA, Genesis."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://emucool.github.io/" />
+    <link rel="canonical" href="https://emucool.github.io/" />
     <style>
       :root {
-        color-scheme: light dark;
-        --bg: #0c0d10;
-        --fg: #e8eaef;
-        --muted: #9aa3b2;
-        --accent: #6ee7b7;
-      }
-      @media (prefers-color-scheme: light) {
-        :root {
-          --bg: #f6f7f9;
-          --fg: #12141a;
-          --muted: #5c6575;
-          --accent: #0d9488;
-        }
+        color-scheme: dark;
+        --bg0: #07080c;
+        --bg1: #0e1018;
+        --fg: #e9ecf2;
+        --muted: #8b95a8;
+        --line: rgba(255, 255, 255, 0.08);
+        --accent: #3ee6b0;
+        --accent-dim: rgba(62, 230, 176, 0.15);
+        --warn: #f5c15c;
+        --radius: 14px;
+        --max: 1040px;
+        --font: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI",
+          Roboto, Helvetica, Arial, sans-serif;
+        --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       }
       * {
         box-sizing: border-box;
       }
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         margin: 0;
-        min-height: 100vh;
+        font-family: var(--font);
+        color: var(--fg);
+        background: var(--bg0);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .noise {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        opacity: 0.04;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        z-index: 0;
+      }
+      .grid {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        background-image: linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%);
+        opacity: 0.35;
+        z-index: 0;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 1.25rem 4rem;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 0 2.5rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
+        background: linear-gradient(145deg, #1a2230, #0f131c);
+        border: 1px solid var(--line);
+        box-shadow: 0 0 0 1px rgba(62, 230, 176, 0.12), 0 12px 40px rgba(0, 0, 0, 0.45);
         display: grid;
         place-items: center;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-        background: radial-gradient(
-            1200px 600px at 50% -20%,
-            color-mix(in oklab, var(--accent) 18%, transparent),
-            transparent 60%
-          ),
-          var(--bg);
-        color: var(--fg);
-        line-height: 1.6;
-        padding: 2rem 1.25rem;
-      }
-      main {
-        width: min(40rem, 100%);
-        text-align: center;
-      }
-      h1 {
-        margin: 0 0 0.5rem;
-        font-size: clamp(2rem, 5vw, 2.75rem);
-        letter-spacing: -0.02em;
+        font-family: var(--mono);
+        font-size: 0.65rem;
         font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--accent);
       }
-      p {
+      .brand h1 {
         margin: 0;
-        color: var(--muted);
         font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
       }
-      .badge {
+      .brand span {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-weight: 400;
+        margin-top: 0.1rem;
+      }
+      .store-link {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.35rem 0.75rem;
+        padding: 0.55rem 1rem;
         border-radius: 999px;
-        border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent);
-        background: color-mix(in oklab, var(--fg) 4%, transparent);
-        font-size: 0.8rem;
-        color: var(--muted);
-        margin-bottom: 1.25rem;
+        background: var(--fg);
+        color: #0a0c10;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
       }
-      .dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+      .store-link:hover {
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 28px rgba(233, 236, 242, 0.12);
+      }
+      .store-link svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+      .hero {
+        padding: 3.25rem 0 2.5rem;
+        display: grid;
+        gap: 1.5rem;
+      }
+      @media (min-width: 860px) {
+        .hero {
+          grid-template-columns: 1.15fr 0.85fr;
+          align-items: start;
+          gap: 3rem;
+          padding-top: 4rem;
+        }
+      }
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(2rem, 4.2vw, 3rem);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        font-weight: 700;
+      }
+      .hero .lede {
+        margin: 0.75rem 0 0;
+        font-size: 1.125rem;
+        color: var(--muted);
+        max-width: 36ch;
+      }
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.35rem;
+      }
+      .pill {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.35rem 0.65rem;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+      }
+      .pill strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .hero-card {
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: linear-gradient(165deg, rgba(255, 255, 255, 0.04), transparent 45%),
+          var(--bg1);
+        padding: 1.35rem 1.35rem 1.5rem;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      }
+      .hero-card h3 {
+        margin: 0 0 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .platforms {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+      .platforms span {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        padding: 0.4rem 0.65rem;
+        border-radius: 8px;
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(62, 230, 176, 0.22);
+      }
+      .hero-card p {
+        margin: 1rem 0 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .hero-card .store-link {
+        margin-top: 1.15rem;
+        width: 100%;
+        justify-content: center;
+      }
+      section {
+        margin-top: 3rem;
+      }
+      section h2 {
+        margin: 0 0 1.25rem;
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+      }
+      .features {
+        display: grid;
+        gap: 1rem;
+      }
+      @media (min-width: 640px) {
+        .features {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (min-width: 900px) {
+        .features {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .card {
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 1.25rem 1.25rem 1.35rem;
+        min-height: 100%;
+      }
+      .card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .card p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .notice {
+        margin-top: 3rem;
+        border-radius: var(--radius);
+        border: 1px solid rgba(245, 193, 92, 0.25);
+        background: rgba(245, 193, 92, 0.06);
+        padding: 1.15rem 1.25rem;
+      }
+      .notice h2 {
+        margin: 0 0 0.5rem;
+        font-size: 0.95rem;
+        color: var(--warn);
+        font-weight: 600;
+      }
+      .notice p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: color-mix(in oklab, var(--fg) 75%, var(--muted));
+        line-height: 1.5;
+      }
+      .pro {
+        margin-top: 2.5rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        padding: 1.35rem 1.35rem 1.45rem;
+        background: linear-gradient(120deg, var(--accent-dim), transparent 55%);
+      }
+      .pro h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.15rem;
+      }
+      .pro p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
       }
       footer {
-        margin-top: 2rem;
-        font-size: 0.85rem;
-        color: color-mix(in oklab, var(--muted) 85%, transparent);
+        margin-top: 3.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--line);
+        font-size: 0.82rem;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+      footer nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
     </style>
   </head>
   <body>
-    <main>
-      <div class="badge" aria-hidden="true"><span class="dot"></span> GitHub Pages</div>
-      <h1>EmuCool</h1>
-      <p>This site is live. Replace this page with your project when you are ready.</p>
-      <footer>emucool.github.io</footer>
-    </main>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="grid" aria-hidden="true"></div>
+    <div class="wrap">
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden="true">EMU</div>
+          <div>
+            <h1>EmuCool</h1>
+            <span>Retro Emulator · iPhone &amp; iPad</span>
+          </div>
+        </div>
+        <a
+          class="store-link"
+          href="https://apps.apple.com/us/app/emucool-retro-emulator/id6759055174"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"
+            />
+          </svg>
+          App Store
+        </a>
+      </header>
+
+      <div class="hero">
+        <div>
+          <h2>Classic games, modern iPhone.</h2>
+          <p class="lede">
+            Import your own game files, use Auto Save/Load and manual save states, and play in
+            portrait or landscape—with tuned on-screen controls for each platform.
+          </p>
+          <div class="pill-row" aria-label="Product highlights">
+            <span class="pill"><strong>Free</strong> · IAP</span>
+            <span class="pill">Save states</span>
+            <span class="pill">Auto save / load</span>
+            <span class="pill">Metal rendering</span>
+          </div>
+        </div>
+        <aside class="hero-card" aria-labelledby="platforms-heading">
+          <h3 id="platforms-heading">Supported systems</h3>
+          <div class="platforms">
+            <span>NES</span>
+            <span>SNES</span>
+            <span>GB / GBC</span>
+            <span>GBA</span>
+            <span>Genesis / Mega Drive</span>
+          </div>
+          <p>
+            Game Library organizes imports by platform with search. Optional CRT, TV, and LCD-style
+            display filters are available with <strong style="color: var(--fg)">EmuCool Pro</strong>.
+          </p>
+          <a
+            class="store-link"
+            href="https://apps.apple.com/us/app/emucool-retro-emulator/id6759055174"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"
+              />
+            </svg>
+            Download on the App Store
+          </a>
+        </aside>
+      </div>
+
+      <section aria-labelledby="features-heading">
+        <h2 id="features-heading">Built for long play sessions</h2>
+        <div class="features">
+          <article class="card">
+            <h3>Game Library</h3>
+            <p>
+              Import files with the system document picker. Titles are grouped by platform with
+              search—ordering stays automatic so you can jump back in fast.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Saves</h3>
+            <p>
+              Manual slots per game, plus auto-save when you exit and auto-load when you return.
+              Thumbnail browser for quick restore.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Display</h3>
+            <p>
+              Metal linear filtering included. EmuCool Pro adds CRT, TV, and LCD-style filters for a
+              more nostalgic look.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Controls &amp; orientation</h3>
+            <p>
+              On-screen controls tuned per platform. Switch between portrait and landscape anytime.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Notes</h3>
+            <p>Per-game notes for passwords, hints, and tips—kept alongside your library.</p>
+          </article>
+          <article class="card">
+            <h3>Reliability</h3>
+            <p>
+              Handles interruptions more gracefully—resume after calls and improved audio recovery
+              when output devices change.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <div class="pro" aria-labelledby="pro-heading">
+        <h2 id="pro-heading">EmuCool Pro</h2>
+        <p>
+          Optional auto-renewing subscription (monthly and yearly). Pricing is shown in-app.
+          Payment is charged to your Apple ID; renews unless cancelled at least 24 hours before the
+          period ends. Manage or cancel in Settings → Apple ID → Subscriptions.
+        </p>
+      </div>
+
+      <div class="notice" role="note">
+        <h2>Important</h2>
+        <p>
+          EmuCool does not include any game files or copyrighted content. You must supply your own
+          legally obtained files and comply with applicable laws where you live.
+        </p>
+      </div>
+
+      <footer>
+        <span>© EmuCool</span>
+        <nav aria-label="Legal">
+          <a href="https://emuload-dev.github.io/emu-privacy.txt" rel="noopener noreferrer" target="_blank"
+            >Privacy Policy</a
+          >
+          <a
+            href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+            rel="noopener noreferrer"
+            target="_blank"
+            >Apple Standard EULA</a
+          >
+          <a
+            href="https://apps.apple.com/us/app/emucool-retro-emulator/id6759055174"
+            rel="noopener noreferrer"
+            target="_blank"
+            >App Store</a
+          >
+        </nav>
+      </footer>
+    </div>
   </body>
 </html>
